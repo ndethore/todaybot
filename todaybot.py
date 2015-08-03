@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import yaml
+import traceback
 
 from slackclient import SlackClient
 
@@ -18,9 +19,6 @@ class SlackBot(object):
         """Convenience method that creates Server instance"""
         self.slack_client = SlackClient(self.token)
         self.slack_client.rtm_connect()
-
-    def process_hello(data):
-        print "Connection established with server..."
 
     def start(self):
         self.connect()
@@ -39,6 +37,21 @@ class SlackBot(object):
 
     def input(self, data):
         print data
+        if "type" in data and data["type"] != "pong":
+            type = data["type"]
+            function_name = "process_" + type
+            try:
+                getattr(self, function_name) 
+            except AttributeError:
+                print "Error: No '" + type + "' event handling."
+            except:
+                print traceback.print_exc()
+
+    def process_hello(self, data):
+        print "Connection established with server..."
+        direct_channels = self.slack_client.api_call("im.list")
+        print "List of existing channels" + direct_channels
+
 
 
 def main_loop():
