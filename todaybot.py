@@ -18,7 +18,10 @@ class SlackBot(object):
     def connect(self):
         """Convenience method that creates Server instance"""
         self.slack_client = SlackClient(self.token)
-        self.slack_client.rtm_connect()
+        try:
+            self.slack_client.rtm_connect()
+        except:
+            print "Connection Failed, invalid token?"
 
     def start(self):
         self.connect()
@@ -36,12 +39,12 @@ class SlackBot(object):
             self.last_ping = now
 
     def input(self, data):
-        print data
         if "type" in data and data["type"] != "pong":
+            print data
             type = data["type"]
             function_name = "process_" + type
             try:
-                getattr(self, function_name) 
+                getattr(self, function_name)(data)
             except AttributeError:
                 print "Error: No '" + type + "' event handling."
             except:
@@ -49,9 +52,24 @@ class SlackBot(object):
 
     def process_hello(self, data):
         print "Connection established with server..."
-        direct_channels = self.slack_client.api_call("im.list")
-        print "List of existing channels" + direct_channels
+        # direct_channels = self.slack_client.api_call("im.list")
+        # print "List of existing channels" + direct_channels
 
+    def process_message(self, data):
+        channel_id = data["channel"]
+        user_id = data["user"]
+        print "UserID:" + user_id
+        if channel_id.startswith("D"):
+            user_name = self.get_username(user_id)
+            print "'{0}' just sent a message.".format(user_name)
+
+    def get_username(self, user_id):
+        # user = self.slack_client.api_call(["users.info", {"user":user_id}])
+        if user:
+            if user["first_name"]:
+                return user["first_name"]
+            else:
+                return user["name"]
 
 
 def main_loop():
