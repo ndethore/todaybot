@@ -2,8 +2,10 @@ import sys
 import os
 import time
 import yaml
+import json
 import traceback
 
+from slackclient._user import User
 from slackclient import SlackClient
 
 outputs = []
@@ -14,6 +16,7 @@ class SlackBot(object):
         self.token = token
         self.bot_plugins = []
         self.slack_client = None
+        self.users = None
 
     def connect(self):
         """Convenience method that creates Server instance"""
@@ -57,19 +60,30 @@ class SlackBot(object):
 
     def process_message(self, data):
         channel_id = data["channel"]
-        user_id = data["user"]
-        print "UserID:" + user_id
+        user = None
         if channel_id.startswith("D"):
-            user_name = self.get_username(user_id)
-            print "'{0}' just sent a message.".format(user_name)
+            user_id = data["user"]
+            print "UserID:" + user_id
 
-    def get_username(self, user_id):
-        # user = self.slack_client.api_call(["users.info", {"user":user_id}])
-        if user:
-            if user["first_name"]:
-                return user["first_name"]
-            else:
-                return user["name"]
+            # try: 
+            #     user = self.users[user_id]
+            # except KeyError:
+            #     user = self.get_user(user_id)
+            #     self.users.add(user)
+            #     # print "'{0}' just sent a message.".format(user_name)
+            #     print self.users
+
+    def get_user(self, user_id):
+        response = self.slack_client.api_call("users.info", user=user_id).decode('utf-8')
+        data = json.loads(response)
+        if data["ok"]:
+            user = data["user"]
+            profile = user["profile"]
+            first_name = None
+            if profile["first_name"]:
+                first_name = profile["first_name"]
+
+        return User(self, user["name"], user_id, first_name, user["tz"])
 
 
 def main_loop():
