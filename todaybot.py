@@ -10,13 +10,49 @@ from slackclient import SlackClient
 
 outputs = []
 
+class Survey(object):
+    def __init__(self, name):
+        self.username = name
+        self.answers = {}
+        self.currentStep = 0
+        self.stepMessageMap = { 0:self.hello_message,\
+                                1:self.done_message,\
+                                2:self.unfinished_message,\
+                                3:self.todo_message,\
+                                4:self.issue_message }
+
+        print "Survey created for {}.".format(name)
+
+    def process_answer(self, answer):
+        pass
+
+    def current_step_message(self):
+        pass
+
+    def hello_message(self):
+        pass
+
+    def done_message(self):
+        pass
+
+    def unfinished_message(self):
+        pass
+
+    def todo_message(self):
+        pass
+
+    def issue_message(self):
+        pass
+
+
+
 class SlackBot(object):
     def __init__(self, token):
         self.last_ping = 0
         self.token = token
         self.bot_plugins = []
         self.slack_client = None
-        self.users = None
+        self.surveys = {}
 
     def connect(self):
         """Convenience method that creates Server instance"""
@@ -55,8 +91,6 @@ class SlackBot(object):
 
     def process_hello(self, data):
         print "Connection established with server..."
-        # direct_channels = self.slack_client.api_call("im.list")
-        # print "List of existing channels" + direct_channels
 
     def process_message(self, data):
         channel_id = data["channel"]
@@ -65,14 +99,10 @@ class SlackBot(object):
             user_id = data["user"]
             print "UserID:" + user_id
 
-            # try: 
-            #     user = self.users[user_id]
-            # except KeyError:
-            #     user = self.get_user(user_id)
-            #     self.users.add(user)
-            #     # print "'{0}' just sent a message.".format(user_name)
-            #     print self.users
-
+            if user_id not in self.surveys:
+                user = self.get_user(user_id)
+                self.surveys.update({user_id:Survey(user.real_name)})
+                
     def get_user(self, user_id):
         response = self.slack_client.api_call("users.info", user=user_id).decode('utf-8')
         data = json.loads(response)
