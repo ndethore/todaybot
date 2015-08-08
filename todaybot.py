@@ -4,6 +4,8 @@ import time
 import yaml
 import json
 import traceback
+import random
+import time
 
 from slackclient._user import User
 from slackclient import SlackClient
@@ -15,34 +17,47 @@ class Survey(object):
         self.username = name
         self.answers = {}
         self.currentStep = 0
-        self.stepMessageMap = { 0:self.hello_message,\
-                                1:self.done_message,\
-                                2:self.unfinished_message,\
-                                3:self.todo_message,\
-                                4:self.issue_message }
+        self.stepMessageMap = { 0:self.done_message,\
+                                1:self.unfinished_message,\
+                                2:self.todo_message,\
+                                3:self.issue_message }
+
+        self.cheerings = ["Great", "Good", "Awesome"]
 
         print "Survey created for {}.".format(name)
 
-    def process_answer(self, answer):
-        pass
+    def process_input(self, user_input):
+            
+        if self.currentStep in self.answers:
+            if "no" in user_input.lower():
 
-    def current_step_message(self):
-        pass
+                self.currentStep += 1
+            else:
+                self.answers[self.currentStep].append(user_input)
+                return self.more_message()
+        
+        if self.currentStep < len(self.stepMessageMap):
+            self.answers[self.currentStep] = []
+            return self.stepMessageMap[self.currentStep]()
+        else:
+            return None
 
-    def hello_message(self):
-        pass
 
     def done_message(self):
-        pass
+        return "Hi {} !\nWhat did you do yesterday ?".format(self.username)
 
     def unfinished_message(self):
-        pass
+        return "Anything that you couldn't finish ?"
 
     def todo_message(self):
-        pass
+        return "What's your plan for today ?"
 
     def issue_message(self):
-        pass
+        return "Any issues ?"
+
+    def more_message(self):
+        index = random.randint(0, 2)
+        return self.cheerings[index] + " ! Anything else ?"
 
 
 
@@ -78,7 +93,7 @@ class SlackBot(object):
             self.last_ping = now
 
     def input(self, data):
-        if "type" in data and data["type"] != "pong":
+        if "type" in data and data["type"]  != "pong":
             print data
             type = data["type"]
             function_name = "process_" + type
@@ -102,7 +117,20 @@ class SlackBot(object):
             if user_id not in self.surveys:
                 user = self.get_user(user_id)
                 self.surveys.update({user_id:Survey(user.real_name)})
+
+            survey = self.surveys[user_id]
+            output = survey.process_input(data["text"])
+            print output
+            if output:
+                self.send_message(output, channel_id)
                 
+    def send_message(self, message, channel_id):
+
+        channel = self.slack_client.server.channels.find(channel_id)
+        encoded_message = message.encode('ascii','ignore')
+        channel.send_message("{}".format(encoded_message))
+        
+
     def get_user(self, user_id):
         response = self.slack_client.api_call("users.info", user=user_id).decode('utf-8')
         data = json.loads(response)
