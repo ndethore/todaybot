@@ -8,15 +8,16 @@ Installation
 
 1. Download the todaybot code
 
-    	    git clone https://github.com/ndethore/todaybot.git
+    	$ git clone https://github.com/ndethore/todaybot.git
     
 2. Install dependencies (virtualenv is recommended.)
 
-    	   pip install -r requirements.txt
+    	$ pip install -r requirements.txt
 
 3. Configure todaybot with a [user token](https://api.slack.com/web) or a [bot token](https://api.slack.com/bot-users)
     
-	vi bot.conf
+		$ vi bot.conf
+		
     	SLACK_TOKEN: "xoxb-11111111111-222222222222222"
     	TODO_CHANNEL: "#somechannel"
 
