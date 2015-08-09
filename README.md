@@ -17,8 +17,8 @@ Installation
 3. Configure todaybot with a [user token](https://api.slack.com/web) or a [bot token](https://api.slack.com/bot-users)
     
 	vi bot.conf
-    	  SLACK_TOKEN: "xoxb-11111111111-222222222222222"
-    	    TODO_CHANNEL: "#somechannel"
+    	SLACK_TOKEN: "xoxb-11111111111-222222222222222"
+    	TODO_CHANNEL: "#somechannel"
 
 Usage
 -----
